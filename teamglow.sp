@@ -50,19 +50,28 @@ public Plugin myinfo = {
 // Start
 public void OnPluginStart()
 {
+	AutoExecConfig(true,"TeamGlow");
+
 	gc_iGlowMode = CreateConVar("sm_glow_mode", "1", "1 - contours with wallhack, 2 - glow effect without wallhack", _, true, 1.0, true, 2.0);
 	gc_iRefuseColorRed = CreateConVar("sm_glow_color_red", "0", "What color for Glow? (set R, G and B values to 255 to disable) (Rgb): x - red value", _, true, 0.0, true, 255.0);
 	gc_iRefuseColorGreen = CreateConVar("sm_glow_color_green", "250", "What color for Glow? (rGb): x - green value", _, true, 0.0, true, 255.0);
 	gc_iRefuseColorBlue = CreateConVar("sm_glow_color_blue", "250", "What color for Glow? (rgB): x - blue value", _, true, 0.0, true, 255.0);
 
+	HookEvent("round_end", Event_RoundEnd);
 	HookEvent("player_spawn", Event_PlayerSpawn);
 	HookEvent("player_death", Event_PlayerDeath);
 }
 
 public void Event_PlayerSpawn(Event event, char[] name, bool dontBroadcast)
 {
-	int client = GetClientOfUserId(event.GetInt("userid"));
-	SetupGlowSkin(client);
+	int userid = event.GetInt("userid");
+	
+	CreateTimer(1.1, Timer_Delay, userid);
+}
+
+public Action Timer_Delay(Handle timer, int userid)
+{
+	SetupGlowSkin(GetClientOfUserId(userid));
 }
 
 public void Event_PlayerDeath(Event event, char[] name, bool dontBroadcast)
@@ -72,9 +81,35 @@ public void Event_PlayerDeath(Event event, char[] name, bool dontBroadcast)
 	UnhookGlow(client);
 }
 
+public void Event_RoundEnd(Event event, char[] name, bool dontBroadcast)
+{
+	for (int i = 1; i <= MaxClients; i++)
+	{
+		UnhookGlow(i);
+	}
+}
+
 public void OnClientDisconnect(int client)
 {
 	UnhookGlow(client);
+}
+
+public void warden_OnWardenCreatedByUser(int client)
+{
+	UnhookGlow(client);
+	SetupGlowSkin(client);
+}
+
+public void warden_OnWardenCreatedByAdmin(int client)
+{
+	UnhookGlow(client);
+	SetupGlowSkin(client);
+}
+
+public void warden_OnWardenRemoved(int client)
+{
+	UnhookGlow(client);
+	SetupGlowSkin(client);
 }
 
 // Perpare client for glow
