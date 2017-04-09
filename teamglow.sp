@@ -43,7 +43,7 @@ public Plugin myinfo = {
 	name = "Team Glow",
 	author = "shanapu",
 	description = "Glow effect for your teammates",
-	version = "1.0",
+	version = "1.1",
 	url = "https://github.com/shanapu/"
 };
 
