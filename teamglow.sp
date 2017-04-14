@@ -43,7 +43,7 @@ public Plugin myinfo = {
 	name = "Team Glow",
 	author = "shanapu",
 	description = "Glow effect for your teammates",
-	version = "1.1",
+	version = "1.3",
 	url = "https://github.com/shanapu/"
 };
 
@@ -115,6 +115,11 @@ public void warden_OnWardenRemoved(int client)
 // Perpare client for glow
 void SetupGlowSkin(int client)
 {
+	if (!IsValidClient(client, true, true))
+	{
+		return;
+	}
+
 	char sModel[PLATFORM_MAX_PATH];
 	GetClientModel(client, sModel, sizeof(sModel));
 
