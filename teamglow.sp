@@ -34,16 +34,23 @@
 
 // Console Variables
 ConVar gc_iGlowMode;
-ConVar gc_iRefuseColorRed;
-ConVar gc_iRefuseColorGreen;
-ConVar gc_iRefuseColorBlue;
+
+ConVar gc_iCTColorRed;
+ConVar gc_iCTColorGreen;
+ConVar gc_iCTColorBlue;
+ConVar gc_iCTColorAlpha;
+
+ConVar gc_iTColorRed;
+ConVar gc_iTColorGreen;
+ConVar gc_iTColorBlue;
+ConVar gc_iTColorAlpha;
 
 // Info
 public Plugin myinfo = {
 	name = "Team Glow",
 	author = "shanapu",
 	description = "Glow effect for your teammates",
-	version = "1.3",
+	version = "2.0",
 	url = "https://github.com/shanapu/"
 };
 
@@ -53,9 +60,16 @@ public void OnPluginStart()
 	AutoExecConfig(true,"TeamGlow");
 
 	gc_iGlowMode = CreateConVar("sm_glow_mode", "1", "1 - contours with wallhack, 2 - glow effect without wallhack", _, true, 1.0, true, 2.0);
-	gc_iRefuseColorRed = CreateConVar("sm_glow_color_red", "0", "What color for Glow? (set R, G and B values to 255 to disable) (Rgb): x - red value", _, true, 0.0, true, 255.0);
-	gc_iRefuseColorGreen = CreateConVar("sm_glow_color_green", "250", "What color for Glow? (rGb): x - green value", _, true, 0.0, true, 255.0);
-	gc_iRefuseColorBlue = CreateConVar("sm_glow_color_blue", "250", "What color for Glow? (rgB): x - blue value", _, true, 0.0, true, 255.0);
+
+	gc_iCTColorRed = CreateConVar("sm_glow_color_ct_red", "0", "What color for Glow? (set R, G and B values to 255 to disable) (Rgb): x - red value", _, true, 0.0, true, 255.0);
+	gc_iCTColorGreen = CreateConVar("sm_glow_color_ct_green", "250", "What color for Glow? (rGb): x - green value", _, true, 0.0, true, 255.0);
+	gc_iCTColorBlue = CreateConVar("sm_glow_color_ct_blue", "250", "What color for Glow? (rgB): x - blue value", _, true, 0.0, true, 255.0);
+	gc_iCTColorAlpha = CreateConVar("sm_glow_color_ct_alpha", "250", "How bright? alpha value", _, true, 0.0, true, 255.0);
+
+	gc_iTColorRed = CreateConVar("sm_glow_color_t_red", "0", "What color for Glow? (set R, G and B values to 255 to disable) (Rgb): x - red value", _, true, 0.0, true, 255.0);
+	gc_iTColorGreen = CreateConVar("sm_glow_color_t_green", "250", "What color for Glow? (rGb): x - green value", _, true, 0.0, true, 255.0);
+	gc_iTColorBlue = CreateConVar("sm_glow_color_t_blue", "250", "What color for Glow? (rgB): x - blue value", _, true, 0.0, true, 255.0);
+	gc_iTColorAlpha = CreateConVar("sm_glow_color_t_alpha", "250", "How bright? alpha value", _, true, 0.0, true, 255.0);
 
 	HookEvent("round_end", Event_RoundEnd);
 	HookEvent("player_spawn", Event_PlayerSpawn);
@@ -94,24 +108,6 @@ public void OnClientDisconnect(int client)
 	UnhookGlow(client);
 }
 
-public void warden_OnWardenCreatedByUser(int client)
-{
-	UnhookGlow(client);
-	SetupGlowSkin(client);
-}
-
-public void warden_OnWardenCreatedByAdmin(int client)
-{
-	UnhookGlow(client);
-	SetupGlowSkin(client);
-}
-
-public void warden_OnWardenRemoved(int client)
-{
-	UnhookGlow(client);
-	SetupGlowSkin(client);
-}
-
 // Perpare client for glow
 void SetupGlowSkin(int client)
 {
@@ -131,12 +127,12 @@ void SetupGlowSkin(int client)
 
 	if (SDKHookEx(iSkin, SDKHook_SetTransmit, OnSetTransmit_GlowSkin))
 	{
-		GlowSkin(iSkin);
+		GlowSkin(iSkin, client);
 	}
 }
 
 // set client glow
-void GlowSkin(int iSkin)
+void GlowSkin(int iSkin, int client)
 {
 	int iOffset;
 
@@ -148,14 +144,27 @@ void GlowSkin(int iSkin)
 	if (gc_iGlowMode.IntValue == 2) SetEntProp(iSkin, Prop_Send, "m_nGlowStyle", 1);
 	SetEntPropFloat(iSkin, Prop_Send, "m_flGlowMaxDist", 10000000.0);
 
-	int iRed = gc_iRefuseColorRed.IntValue;
-	int iGreen = gc_iRefuseColorGreen.IntValue;
-	int iBlue = gc_iRefuseColorBlue.IntValue;
+	int iRed, iGreen, iBlue, iAlpha;
+
+	if (GetClientTeam(client) == CS_TEAM_CT)
+	{
+		iRed = gc_iCTColorRed.IntValue;
+		iGreen = gc_iCTColorGreen.IntValue;
+		iBlue = gc_iCTColorBlue.IntValue;
+		iAlpha = gc_iCTColorAlpha.IntValue;
+	}
+	else if (GetClientTeam(client) == CS_TEAM_T)
+	{
+		iRed = gc_iTColorRed.IntValue;
+		iGreen = gc_iTColorGreen.IntValue;
+		iBlue = gc_iTColorBlue.IntValue;
+		iAlpha = gc_iTColorAlpha.IntValue;
+	}
 
 	SetEntData(iSkin, iOffset, iRed, _, true);
 	SetEntData(iSkin, iOffset + 1, iGreen, _, true);
 	SetEntData(iSkin, iOffset + 2, iBlue, _, true);
-	SetEntData(iSkin, iOffset + 3, 255, _, true);
+	SetEntData(iSkin, iOffset + 3, iAlpha, _, true);
 }
 
 // Who can see the glow if vaild
